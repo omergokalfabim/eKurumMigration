@@ -15,9 +15,42 @@
         <maven.compiler.release>17</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <failOnMissingWebXml>false</failOnMissingWebXml>
+        <slf4j.version>2.0.16</slf4j.version>
+        <logback.version>1.5.15</logback.version>
     </properties>
 
     <dependencies>
+
+
+<dependency>
+    <groupId>com.fasterxml.jackson.core</groupId>
+    <artifactId>jackson-databind</artifactId>
+    <version>2.17.3</version>
+</dependency>
+        
+        
+         <!-- ========================= -->
+        <!-- SLF4J                      -->
+        <!-- ========================= -->
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+
+        <!-- ========================= -->
+        <!-- Logback                    -->
+        <!-- ========================= -->
+
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>${logback.version}</version>
+        </dependency>
+
+
+        
         <!-- Jakarta Faces 4.0: compatible with Jakarta EE 10 / Tomcat 10.1 -->
         <dependency>
             <groupId>org.glassfish</groupId>

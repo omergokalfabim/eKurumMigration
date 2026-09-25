@@ -16,34 +16,83 @@ public class DemoBean implements Serializable {
 
     @PostConstruct
     public void init() {
-        barChartJson = """
-            {
-                type: 'bar',
-                data: {
-                    labels: ['Bilgi İşlem', 'Muhasebe', 'İK', 'PDKS', 'Destek'],
-                    datasets: [{
-                        label: 'Personel',
-                        data: [25, 42, 18, 35, 28],
-                        backgroundColor: [
-                            '#42A5F5',
-                            '#66BB6A',
-                            '#FFA726',
-                            '#AB47BC',
-                            '#26A69A'
-                        ]
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            }
-            """;
+    	barChartJson = """
+    			{
+    			    type: 'bar',
+
+    			    data: {
+    			        labels: [
+    			            'Bilgi İşlem',
+    			            'Muhasebe',
+    			            'İK',
+    			            'PDKS',
+    			            'Destek'
+    			        ],
+
+    			        datasets: [
+
+    			            {
+    			                label: 'Zamanında',
+    			                data: [18, 30, 12, 25, 20],
+    			                backgroundColor: '#42A5F5'
+    			            },
+
+    			            {
+    			                label: 'Gecikti',
+    			                data: [4, 7, 3, 6, 5],
+    			                backgroundColor: '#EF5350'
+    			            },
+
+    			            {
+    			                label: 'İzinli',
+    			                data: [2, 3, 2, 2, 1],
+    			                backgroundColor: '#FFA726'
+    			            },
+
+    			            {
+    			                label: 'Raporlu',
+    			                data: [1, 2, 1, 2, 2],
+    			                backgroundColor: '#AB47BC'
+    			            }
+
+    			        ]
+    			    },
+
+    			    options: {
+
+    			        responsive: true,
+
+    			        maintainAspectRatio: false,
+
+    			        plugins: {
+
+    			            legend: {
+    			                position: 'top'
+    			            }
+
+    			        },
+
+    			        scales: {
+
+    			            x: {
+    			                stacked: false
+    			            },
+
+    			            y: {
+
+    			                beginAtZero: true,
+
+    			                ticks: {
+    			                    precision: 0
+    			                }
+
+    			            }
+
+    			        }
+
+    			    }
+    			}
+    			""";
     }
 
     public String getBarChartJson() {
