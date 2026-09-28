@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration>
+
+    <!-- ================================================= -->
+    <!-- LOG KLASÖRÜ                                      -->
+    <!-- ================================================= -->
+
+    <property name="LOG_DIR"
+              value="D:/Web/Client/MIS/Extensions/eKurumMigration/Log"/>
+
+    <property name="APP_NAME"
+              value="eKurumMigration"/>
+
+
+    <!-- ================================================= -->
+    <!-- CONSOLE APPENDER                                 -->
+    <!-- ================================================= -->
+
+    <appender name="CONSOLE"
+              class="ch.qos.logback.core.ConsoleAppender">
+
+        <encoder>
+
+            <charset>UTF-8</charset>
+
+            <pattern>
+                %d{yyyy-MM-dd HH:mm:ss.SSS}
+                %-5level
+                [%thread]
+                [%logger{40}]
+                - %msg%n
+            </pattern>
+
+        </encoder>
+
+    </appender>
+
+
+    <!-- ================================================= -->
+    <!-- FILE APPENDER                                    -->
+    <!-- 100 MB + günlük rotation                         -->
+    <!-- ================================================= -->
+
+    <appender name="FILE"
+              class="ch.qos.logback.core.rolling.RollingFileAppender">
+
+        <file>${LOG_DIR}/${APP_NAME}.log</file>
+
+        <encoder>
+
+            <charset>UTF-8</charset>
+
+            <pattern>
+                %d{yyyy-MM-dd HH:mm:ss.SSS}
+                %-5level
+                [%thread]
+                [%logger{40}]
+                - %msg%n
+            </pattern>
+
+        </encoder>
+
+
+        <rollingPolicy
+            class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+
+            <!--
+                Günlük yeni dosya
+                + 100 MB aşılırsa parçala
+            -->
+
+            <fileNamePattern>
+                ${LOG_DIR}/${APP_NAME}.%d{yyyy-MM-dd}.%i.log
+            </fileNamePattern>
+
+            <maxFileSize>100MB</maxFileSize>
+
+            <!-- 30 günlük log -->
+            <maxHistory>30</maxHistory>
+
+            <!-- Toplam log boyut limiti -->
+            <totalSizeCap>1GB</totalSizeCap>
+
+        </rollingPolicy>
+
+    </appender>
+
+
+    <!-- ================================================= -->
+    <!-- SPRING LOGGING                                   -->
+    <!-- ================================================= -->
+
+    <logger name="org.springframework"
+            level="INFO"/>
+
+
+    <!-- ================================================= -->
+    <!-- HIBERNATE                                       -->
+    <!-- ================================================= -->
+
+    <logger name="org.hibernate"
+            level="WARN"/>
+
+
+    <!-- SQL görmek istersen DEBUG yapabilirsin -->
+
+    <!--
+    <logger name="org.hibernate.SQL"
+            level="DEBUG"/>
+
+    <logger name="org.hibernate.orm.jdbc.bind"
+            level="TRACE"/>
+    -->
+
+
+    <!-- ================================================= -->
+    <!-- SENİN UYGULAMAN                                  -->
+    <!-- ================================================= -->
+
+    <logger name="com.uniyaz"
+            level="DEBUG"/>
+
+
+    <!-- ================================================= -->
+    <!-- ROOT                                             -->
+    <!-- ================================================= -->
+
+    <root level="INFO">
+
+        <appender-ref ref="CONSOLE"/>
+
+        <appender-ref ref="FILE"/>
+
+    </root>
+
+</configuration>

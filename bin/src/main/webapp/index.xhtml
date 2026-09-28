@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" 
+      xmlns:h="jakarta.faces.html"
+	  xmlns:f="jakarta.faces.core" 
+	  xmlns:p="primefaces">
+<h:head>
+	<title>JSF + PrimeFaces Demo</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+</h:head>
+
+<h:body>
+	<h:form id="form">
+		<p:growl id="messages" showDetail="true" />
+
+
+		<p:panel header="Personel Devam Kontrol Paneli" style="margin-top:20px;">
+			<p:chart id="personelChart" style="width:100%; height:600px;">
+
+				<f:facet name="value">
+        #{demoBean.barChartJson}
+    </f:facet>
+
+			</p:chart>
+		</p:panel>
+
+	</h:form>
+</h:body>
+</html>

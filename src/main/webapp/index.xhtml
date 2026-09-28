@@ -1,28 +1,406 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" 
-      xmlns:h="jakarta.faces.html"
-	  xmlns:f="jakarta.faces.core" 
-	  xmlns:p="primefaces">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:h="jakarta.faces.html"
+	xmlns:f="jakarta.faces.core" xmlns:p="primefaces">
 <h:head>
 	<title>JSF + PrimeFaces Demo</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<h:outputStylesheet library="css" name="pdks-dashboard.css" />
+
+	<script
+		src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+	<script>
+		function chartExtender() {
+			var options = {
+				plugins : [ ChartDataLabels ],
+				options : {
+					plugins : {
+						// Change options for ALL labels of THIS CHART
+						datalabels : {
+							color : 'HotPink'
+						}
+					}
+				},
+				data : {
+					datasets : [ {
+						// Change options only for labels of THIS DATASET
+						datalabels : {
+							color : 'Indigo'
+						}
+					} ]
+				}
+			};
+			//merge all options into the main chart options
+			$.extend(true, this.cfg.config, options);
+		}
+	</script>
+
+
+
 </h:head>
 
 <h:body>
 	<h:form id="form">
 		<p:growl id="messages" showDetail="true" />
 
+		<main class="dashboard">
 
-		<p:panel header="Personel Devam Kontrol Paneli" style="margin-top:20px;">
-			<p:chart id="personelChart" style="width:100%; height:600px;">
+			<section class="filter-card">
 
-				<f:facet name="value">
-        #{demoBean.barChartJson}
-    </f:facet>
+  <p:panelGrid columns="12"
+						columnClasses="ui-grid-col-5,ui-grid-col-5,ui-grid-col-5,ui-grid-col-5,ui-grid-col-5,ui-grid-col-5,ui-grid-col-5,ui-grid-col-5,ui-grid-col-5,ui-grid-col-5,ui-grid-col-5,ui-grid-col-5"
+						layout="grid" styleClass="ui-panelgrid-blank ui-fluid"
+						style="border:0px none; background-color:transparent;">
+ 
+                       <label> <i class="pi pi-calendar"></i> Tarih Aralığı </label>
+ 
+ 
+						<p:calendar locale="tr"
+							converterMessage="Lütfen geçerli bir tarih giriniz."
+							pattern="dd.MM.yyyy" mask="true" showButtonPanel="true"
+							yearRange="c-70:c+10" navigator="true" tabindex="1" id="ilkTarih"
+							value="#{pdksBirimDevamDurumBean.ilkIslemTarihi}"
+							placeholder="İlk Tarih" required="true"
+							requiredMessage="İlk Tarih">
+							<f:converter converterId="com.uniyaz.sistem.util.MyDateConverter" />
+							<f:attribute name="pattern" value="dd.MM.yyyy" />
+						</p:calendar>
+						
+						<p:calendar locale="tr"
+							converterMessage="Lütfen geçerli bir tarih giriniz."
+							pattern="dd.MM.yyyy" mask="true" showButtonPanel="true"
+							yearRange="c-70:c+10" navigator="true" tabindex="2" id="sonTarih"
+							value="#{pdksBirimDevamDurumBean.sonIslemTarihi}"
+							placeholder="Son Tarih" required="true"
+							requiredMessage="Son Tarih">
+							<f:converter converterId="com.uniyaz.sistem.util.MyDateConverter" />
+							<f:attribute name="pattern" value="dd.MM.yyyy" />
+						</p:calendar>
+						 
+						 <label> <i class="pi pi-sitemap"></i> Birim </label>
 
-			</p:chart>
-		</p:panel>
+						<p:selectOneMenu id="grup" tabindex="1"
+							style="font-weight: bold;font-size: 20px;"
+							styleClass="dashboard-select"
+							value="#{pdksBirimDevamDurumBean.grupId}" label="-Birim Seçiniz-">
+							<f:selectItem itemLabel="Tümü" itemValue="0" />
+							<f:selectItems
+								value="#{pdksBirimDevamDurumBean.pdksGrupMapKullaniciDtos}" var="a"
+								itemLabel="#{a.pdksGrup.aciklama}"
+								itemValue="#{a.pdksGrup.pdksGrupId}" />
+							<p:ajax event="change" process="@this" update="@this" />
+						</p:selectOneMenu>
+						
+						<label> <i class="pi pi-users"></i> Vardiya
+						</label>
 
+						<p:selectOneMenu id="vardiya" tabindex="1"
+							style="font-weight: bold;font-size: 20px;"
+							value="#{pdksBirimDevamDurumBean.vardiyaId}"
+							label="-Vardiya Seçiniz-">
+							<f:selectItem itemLabel="Tümü" itemValue="0" />
+							<f:selectItems value="#{pdksBirimDevamDurumBean.vardiyaListe}"
+								var="a" itemLabel="#{a.ilkSaat} - #{a.sonSaat} "
+								itemValue="#{a.pdksPVardiyaId}" />
+							<p:ajax event="change" process="@this" update="@this" />
+						</p:selectOneMenu>
+
+
+						<p:commandButton value="Filtrele" icon="pi pi-filter"
+							actionListener="#{pdksBirimDevamDurumBean.islem}"
+							styleClass="filter-button" />
+
+						<p:commandButton value="Temizle" icon="pi pi-refresh"
+							actionListener="#{pdksBirimDevamDurumBean.resetEntityLoad()}"
+							styleClass="clear-button" type="button" />
+					
+					</p:panelGrid>
+
+			</section>
+
+			<!-- KPI CARDS -->
+			<section class="stats-grid">
+
+				 <div class="stat-card blue">
+						<div class="stat-icon">
+							<i class="pi pi-users"></i>
+						</div>
+						<div class="stat-content">
+							<span class="stat-title">Toplam Personel</span> <strong>#{pdksBirimDevamDurumBean.toplamGrupPersonelSayisi}</strong>
+							<small>Aktif personel sayısı</small>
+						</div>
+					</div>
+
+					<div class="stat-card green">
+						<div class="stat-icon">
+							<i class="pi pi-sign-in"></i>
+						</div>
+						<div class="stat-content">
+							<span class="stat-title">Bugün Giriş Yapan</span> <strong>#{pdksBirimDevamDurumBean.toplamGelenSayisi}</strong>
+							<small>% #{pdksBirimDevamDurumBean.toplamKatilimOran} katılım
+								oranı</small>
+						</div>
+					</div>
+
+					<div class="stat-card orange">
+						<div class="stat-icon">
+							<i class="pi pi-clock"></i>
+						</div>
+						<div class="stat-content">
+							<span class="stat-title">Geç Kalan</span> <strong>#{pdksBirimDevamDurumBean.toplamGecikenSayisi}</strong>
+							<small>% #{pdksBirimDevamDurumBean.toplamGecikenOran} geciken
+								personel oranı</small>
+						</div>
+					</div>
+
+					<div class="stat-card purple">
+						<div class="stat-icon">
+							<i class="pi pi-umbrella"></i>
+						</div>
+						<div class="stat-content">
+							<span class="stat-title">İzinli</span> <strong>#{pdksBirimDevamDurumBean.toplamIzinliSayisi}</strong>
+							<small>% #{pdksBirimDevamDurumBean.toplamIzinliOran} izinli
+								personel oranı</small>
+						</div>
+					</div>
+
+					<div class="stat-card red">
+						<div class="stat-icon">
+							<i class="pi pi-file-plus"></i>
+						</div>
+						<div class="stat-content">
+							<span class="stat-title">Raporlu</span> <strong>#{pdksBirimDevamDurumBean.toplamRaporluSayisi}</strong>
+							<small>% #{pdksBirimDevamDurumBean.toplamRaporluOran} raporlu
+								personel oranı</small>
+						</div>
+					</div>
+
+					<div class="stat-card teal">
+						<div class="stat-icon">
+							<i class="pi pi-map-marker"></i>
+						</div>
+						<div class="stat-content">
+							<span class="stat-title">Sahada</span> <strong>16</strong> <small>%3,0
+								oranı</small>
+						</div>
+					</div>
+
+					<div class="stat-card gray">
+						<div class="stat-icon">
+							<i class="pi pi-moon"></i>
+						</div>
+						<div class="stat-content">
+							<span class="stat-title">Mesai Dışı</span> <strong>22</strong> <small>%4,1
+								oranı</small>
+						</div>
+					</div>
+
+			</section>
+			<!-- ================= ROW 1 ================= -->
+			<section class="dashboard-row row-one">
+
+				<!-- BAR CHART -->
+				<div class="panel panel-large">
+					<div class="panel-header">
+						<div>
+							<i class="pi pi-chart-bar panel-icon"></i>
+							<h2>Birimlere Göre Devam Durumu</h2>
+						</div>
+						<div class="mini-select">
+							Personel Sayısı <i class="pi pi-chevron-down"></i>
+						</div>
+					</div>
+
+
+					<p:chart id="personelChart">
+						<f:facet name="value">
+                           #{pdksBirimDevamDurumBean.barChartJson}
+                        </f:facet>
+					</p:chart>
+				</div>
+				<!-- DONUT CHART -->
+				<div class="panel panel-medium">
+					<div class="panel-header">
+						<div>
+							<i class="pi pi-chart-pie panel-icon"></i>
+							<h2>Bugünkü Personel Durumu</h2>
+						</div>
+					</div>
+
+					<p:chart value="#{pdksBirimDevamDurumBean.pieModel}"
+						extender="chartExtender" />
+
+				</div>
+
+<div class="panel panel-alerts">
+                <div class="panel-header">
+                    <div>
+                        <i class="pi pi-exclamation-triangle panel-icon alert-title-icon"></i>
+                        <h2>Kritik Uyarılar</h2>
+                    </div>
+                    <a href="#" class="see-all">Tümünü Gör <i class="pi pi-arrow-right"></i></a>
+                </div>
+
+                <div class="alert-list">
+
+                    <div class="alert-item">
+                        <i class="pi pi-clock alert-red"></i>
+                        <div><b>Geç Gelen Personel</b><span>Bugün 28 personel geç geldi.</span></div>
+                        <strong class="alert-count red-pill">28 kişi</strong>
+                        <time>07.03.2025 09:15</time>
+                    </div>
+
+                    <div class="alert-item">
+                        <i class="pi pi-map-marker alert-red"></i>
+                        <div><b>Giriş Yapmayan Personel</b><span>Bugün henüz giriş yapmayan 42 personel var.</span></div>
+                        <strong class="alert-count red-pill">42 kişi</strong>
+                        <time>07.03.2025 09:10</time>
+                    </div>
+
+                    <div class="alert-item">
+                        <i class="pi pi-arrow-right-arrow-left alert-orange"></i>
+                        <div><b>Vardiya Uyumsuzluğu</b><span>3 personelde vardiya dışı giriş tespit edildi.</span></div>
+                        <strong class="alert-count orange-pill">3 kişi</strong>
+                        <time>07.03.2025 08:50</time>
+                    </div>
+
+                    <div class="alert-item">
+                        <i class="pi pi-exclamation-triangle alert-yellow"></i>
+                        <div><b>Uzun Süreli Sahada</b><span>5 personel 8 saati aşkın süredir sahada.</span></div>
+                        <strong class="alert-count yellow-pill">5 kişi</strong>
+                        <time>07.03.2025 08:30</time>
+                    </div>
+
+                    <div class="alert-item">
+                        <i class="pi pi-info-circle alert-blue"></i>
+                        <div><b>Eksik Çıkış Kaydı</b><span>Dün 12 personelin çıkış kaydı bulunmuyor.</span></div>
+                        <strong class="alert-count blue-pill">12 kişi</strong>
+                        <time>06.03.2025 20:10</time>
+                    </div>
+
+                </div>
+            </div>
+
+
+			</section>
+
+        <section class="dashboard-row row-two">
+
+            <!-- LINE CHART -->
+            <div class="panel trend-panel">
+                <div class="panel-header">
+                    <div>
+                        <i class="pi pi-chart-line panel-icon"></i>
+                        <h2>Son 7 Gün Giriş-Çıkış Trendleri</h2>
+                    </div>
+                    <div class="chart-legend">
+                        <span><i class="dot present-dot"></i> Giriş</span>
+                        <span><i class="dot blue-dot"></i> Çıkış</span>
+                    </div>
+                </div>
+
+                <div class="line-chart">
+                    <svg viewBox="0 0 620 220" preserveAspectRatio="none">
+                        <line x1="45" y1="20" x2="600" y2="20" class="svg-grid"/>
+                        <line x1="45" y1="65" x2="600" y2="65" class="svg-grid"/>
+                        <line x1="45" y1="110" x2="600" y2="110" class="svg-grid"/>
+                        <line x1="45" y1="155" x2="600" y2="155" class="svg-grid"/>
+                        <line x1="45" y1="200" x2="600" y2="200" class="svg-grid"/>
+
+                        <polyline points="45,70 135,78 225,48 315,40 405,41 495,43 585,38"
+                                  class="svg-line green-line"/>
+                        <polyline points="45,105 135,112 225,84 315,78 405,79 495,82 585,76"
+                                  class="svg-line blue-line"/>
+
+                        <circle cx="45" cy="70" r="4" class="svg-point green-point"/>
+                        <circle cx="135" cy="78" r="4" class="svg-point green-point"/>
+                        <circle cx="225" cy="48" r="4" class="svg-point green-point"/>
+                        <circle cx="315" cy="40" r="4" class="svg-point green-point"/>
+                        <circle cx="405" cy="41" r="4" class="svg-point green-point"/>
+                        <circle cx="495" cy="43" r="4" class="svg-point green-point"/>
+                        <circle cx="585" cy="38" r="4" class="svg-point green-point"/>
+
+                        <circle cx="45" cy="105" r="4" class="svg-point blue-point"/>
+                        <circle cx="135" cy="112" r="4" class="svg-point blue-point"/>
+                        <circle cx="225" cy="84" r="4" class="svg-point blue-point"/>
+                        <circle cx="315" cy="78" r="4" class="svg-point blue-point"/>
+                        <circle cx="405" cy="79" r="4" class="svg-point blue-point"/>
+                        <circle cx="495" cy="82" r="4" class="svg-point blue-point"/>
+                        <circle cx="585" cy="76" r="4" class="svg-point blue-point"/>
+                    </svg>
+
+                    <div class="x-axis">
+                        <span>01 Mar</span><span>02 Mar</span><span>03 Mar</span>
+                        <span>04 Mar</span><span>05 Mar</span><span>06 Mar</span><span>07 Mar</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LATE PERSONNEL -->
+            <div class="panel late-panel">
+                <div class="panel-header">
+                    <div>
+                        <i class="pi pi-clock panel-icon"></i>
+                        <h2>Geç Gelen Personel Listesi</h2>
+                    </div>
+                    <a href="#" class="see-all">Tümünü Gör <i class="pi pi-arrow-right"></i></a>
+                </div>
+
+                <div class="person-table">
+                    <div class="table-row table-head">
+                        <span>#</span><span>Ad Soyad</span><span>Birim</span>
+                        <span>Vardiya</span><span>Giriş Saati</span><span>Gecikme</span>
+                    </div>
+
+                    <div class="table-row">
+                        <span>1</span><span>Ahmet Yılmaz</span><span>Fen İşleri</span>
+                        <span>Sabah</span><span>08:32</span><b>32 dk</b>
+                    </div>
+                    <div class="table-row">
+                        <span>2</span><span>Ayşe Demir</span><span>Temizlik İşleri</span>
+                        <span>Sabah</span><span>08:28</span><b>28 dk</b>
+                    </div>
+                    <div class="table-row">
+                        <span>3</span><span>Mehmet Kaya</span><span>Zabıta</span>
+                        <span>Sabah</span><span>08:25</span><b>25 dk</b>
+                    </div>
+                    <div class="table-row">
+                        <span>4</span><span>Fatma Çelik</span><span>Park ve Bahçeler</span>
+                        <span>Sabah</span><span>08:20</span><b>20 dk</b>
+                    </div>
+                    <div class="table-row">
+                        <span>5</span><span>Serkan Arslan</span><span>Mali Hizmetler</span>
+                        <span>Sabah</span><span>08:18</span><b>18 dk</b>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LEAVE SUMMARY -->
+            <div class="panel leave-panel">
+                <div class="panel-header">
+                    <div>
+                        <i class="pi pi-file panel-icon"></i>
+                        <h2>İzin ve Rapor Özeti</h2>
+                    </div>
+                </div>
+
+                <div class="summary-item">
+                    <div class="summary-icon purple-icon"><i class="pi pi-umbrella"></i></div>
+                    <div><b>İzinli Personel</b><span>%2,2</span></div>
+                    <strong>12</strong>
+                    <i class="pi pi-angle-right"></i>
+                </div>
+
+                <div class="summary-item">
+                    <div class="summary-icon red-icon"><i class="pi pi-file-plus"></i></div>
+                    <div><b>Raporlu Personel</b><span>%1,5</span></div>
+                    <strong>8</strong>
+                    <i class="pi pi-angle-right"></i>
+                </div>
+            </div>
+
+        </section>
+
+		</main>
 	</h:form>
 </h:body>
 </html>
